@@ -173,6 +173,30 @@ Response:
 }
 ```
 
+### 📜 Viewing Logs
+
+You can view logs for all running services using:
+
+```bash
+docker-compose logs -f
+```
+
+This will stream logs from both the FastAPI app (`sidekik-api`) and the PostgreSQL database (`sidekik-db`).
+
+To view logs for just the FastAPI service:
+
+```bash
+docker-compose logs -f sidekik-api
+```
+
+Or just the database:
+
+```bash
+docker-compose logs -f sidekik-db
+```
+
+To exit the log stream, press `Ctrl + C`.
+
 ---
 
 ## API Documentation
