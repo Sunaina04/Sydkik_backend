@@ -23,3 +23,8 @@ authlib
 httpx
 itsdangerous
 pydantic-settings
+python-jose
+alembic
+asyncpg 
+greenlet
+psycopg2-binary

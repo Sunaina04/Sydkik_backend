@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:15
-    container_name: sidekick-db
+    container_name: sidekik-db
     restart: always
     environment:
       POSTGRES_USER: ${DATABASE_USER}
@@ -16,16 +14,16 @@ services:
 
   web:
     build: .
-    container_name: sidekick-api
+    container_name: sidekik-api
     restart: always
     depends_on:
       - db
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
     volumes:
       - .:/app
-    env_file:
-      - .env
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 volumes:

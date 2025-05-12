@@ -1,6 +1,6 @@
-# Sidekick Backend
+# sidekik Backend
 
-This is the backend of the **Sidekick** application built with **FastAPI**, **SQLAlchemy**, and **PostgreSQL**. The project is containerized using **Docker**, and authentication is provided through **Google OAuth**.
+This is the backend of the **sidekik** application built with **FastAPI**, **SQLAlchemy**, and **PostgreSQL**. The project is containerized using **Docker**, and authentication is provided through **Google OAuth**.
 
 ## Table of Contents
 
@@ -84,7 +84,7 @@ DATABASE_USER=postgres
 DATABASE_PASSWORD=securepassword
 DATABASE_HOST=db
 DATABASE_PORT=5432
-DATABASE_NAME=sidekick_db
+DATABASE_NAME=sidekik_db
 
 # Application Secret Key (for session management)
 SECRET_KEY=supersecretkey123
@@ -113,8 +113,8 @@ docker-compose up --build -d
 This command will:
 
 * Build the Docker images defined in the `Dockerfile` and `docker-compose.yml` file
-* Start the `sidekick-db` container (PostgreSQL)
-* Start the `sidekick-api` container (FastAPI)
+* Start the `sidekik-db` container (PostgreSQL)
+* Start the `sidekik-api` container (FastAPI)
 
 ### Stop the Containers
 
@@ -188,7 +188,7 @@ These pages provide a live interface to test and understand all available routes
 
 ## Additional Notes
 
-* **Docker Networking**: The `sidekick-db` (PostgreSQL) and `sidekick-api` (FastAPI) containers are linked via Docker network. The FastAPI app accesses the database using the `db` hostname.
+* **Docker Networking**: The `sidekik-db` (PostgreSQL) and `sidekik-api` (FastAPI) containers are linked via Docker network. The FastAPI app accesses the database using the `db` hostname.
 
 * **Environment Variables**: Secrets like `SECRET_KEY` and OAuth credentials should be stored in the `.env` file and **never** committed to version control. Add `.env` to `.gitignore`.
 

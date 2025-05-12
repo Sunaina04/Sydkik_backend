@@ -4,8 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from sqlalchemy import text
 from app.auth.config import oauth
-from jose import jwt
+from jose import jwt, JWTError
+from fastapi import Header
+import datetime
+import logging
+import secrets
 
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -24,26 +30,45 @@ async def test_db(db: AsyncSession = Depends(get_db)):
             "message": "Database connection successful"
         }
     except Exception as e:
+        logger.error(f"Database connection failed: {str(e)}")
         return {
             "status": "error",
             "message": f"Database connection failed: {str(e)}"
-        } 
+        }
 
 @router.get("/login")
 async def login(request: Request):
+    nonce = secrets.token_urlsafe()
+    request.session['nonce'] = nonce  # Store the nonce in session
+
     redirect_uri = request.url_for("auth_callback")
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    return await oauth.google.authorize_redirect(request, redirect_uri, nonce=nonce)
 
 @router.get("/callback", name="auth_callback")
 async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
     # Get the token using OAuth2
     token = await oauth.google.authorize_access_token(request)
     id_token = token.get("id_token")
-    
+
     if not id_token:
+        logger.warning("Missing id_token in the response from Google OAuth")
         raise HTTPException(status_code=400, detail="Missing id_token in token response")
+
+    nonce = request.session.get("nonce")
+    if not nonce:
+        raise HTTPException(status_code=400, detail="Missing nonce in session")
+
+    try:
+        # ✅ Pass nonce to validate the id_token
+        user_info = await oauth.google.parse_id_token(token, nonce=nonce)
+    except JWTError as e:
+        logger.error(f"Error decoding or validating id_token: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid token: {str(e)}")
     
-    user_info = jwt.get_unverified_claims(id_token)
+    # Check if the 'sub' (user ID) is present in the decoded token
+    if "sub" not in user_info:
+        logger.warning("Missing 'sub' in the decoded id_token")
+        raise HTTPException(status_code=400, detail="Invalid token: 'sub' field missing")
 
     # Check if user already exists
     existing_user = await get_user_by_google_id(db, user_info["sub"])
@@ -52,16 +77,45 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
         return {"message": "User already exists", "user": existing_user}
 
     # Create new user if doesn't exist
-    new_user = await create_user(db, {
-        'sub': user_info['sub'],
-        'email': user_info['email'],
-        'name': user_info['name'],
-        'given_name': user_info['given_name'],
-        'picture': user_info['picture'],
-        'email_verified': user_info['email_verified'],
-        'access_token': token.get('access_token'),
-        'refresh_token': token.get('refresh_token'),
-        'created_at': user_info['iat']
-    })
+    created_at = datetime.datetime.utcfromtimestamp(user_info['iat'])  # Convert 'iat' to datetime
 
-    return {"message": "User created successfully", "user": new_user}
+    try:
+        user_info = {
+            'sub': token['userinfo']['sub'],  
+            'email': token['userinfo']['email'],
+            'google_id': token['userinfo']['sub'],
+            'name': token['userinfo']['name'],
+            'given_name': token['userinfo']['given_name'],
+            'picture': token['userinfo']['picture'],
+            'email_verified': token['userinfo']['email_verified'],
+            'access_token': token['access_token'],
+            'refresh_token': token.get('refresh_token', None),  
+            'created_at': created_at,
+        }
+
+        new_user = await create_user(db, user_info)
+        return {"message": "User created successfully", "user": new_user}
+
+    except Exception as e:
+        logger.error(f"Error creating new user: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error while creating user")
+
+def get_google_data_from_request(request: Request):
+    # Extract necessary data from the request
+    # Example: Extract a 'google_id' from cookies or session (if needed)
+    google_id = request.cookies.get('google_id')  # Example
+    return {
+        'google_id': google_id
+    }
+
+@router.get("/me")
+async def get_me(authorization: str = Header(...), db: AsyncSession = Depends(get_db)):
+    try:
+        token = authorization.replace("Bearer ", "")
+        user_info = await oauth.google.parse_id_token({'id_token': token})
+        user = await get_user_by_google_id(db, user_info["sub"])
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {"user": user}
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail="Invalid token")
