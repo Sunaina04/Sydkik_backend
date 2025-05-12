@@ -1,0 +1,3 @@
+"""
+Sydkik Backend Application
+""" 

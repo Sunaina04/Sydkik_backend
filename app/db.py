@@ -3,15 +3,19 @@ from sqlalchemy.orm import sessionmaker
 from app.config import settings
 import urllib.parse
 
-# Encode password safely
-encoded_password = urllib.parse.quote_plus(settings.DATABASE_PASSWORD)
+# URL encode the password to handle special characters
+encoded_password = urllib.parse.quote_plus(settings.POSTGRES_PASSWORD)
 
 DATABASE_URL = (
-    f"postgresql+asyncpg://{settings.DATABASE_USER}:{encoded_password}"
-    f"@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}"
+    f"postgresql+asyncpg://{settings.POSTGRES_USER}:{encoded_password}"
+    f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 )
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=True,
+    pool_pre_ping=True
+)
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
@@ -21,4 +25,7 @@ AsyncSessionLocal = sessionmaker(
 
 async def get_db():
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.close()

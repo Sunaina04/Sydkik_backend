@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.v1 import auth
+from app.api.v1 import auth, email
 from starlette.middleware.sessions import SessionMiddleware
 import secrets
 from dotenv import load_dotenv
@@ -15,6 +15,7 @@ app.add_middleware(SessionMiddleware, secret_key=secret_key)
 def health_check():
     return {"status": "running"}
 
-# Include auth routes
+# Include routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(email.router, prefix="/api/v1/email", tags=["email"])
 
