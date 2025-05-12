@@ -1,15 +1,16 @@
-# sidekik Backend
+# Sidekik Backend
 
 This is the backend of the **sidekik** application built with **FastAPI**, **SQLAlchemy**, and **PostgreSQL**. The project is containerized using **Docker**, and authentication is provided through **Google OAuth**.
 
 ## Table of Contents
 
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Docker Setup](#docker-setup)
-- [Running the Application](#running-the-application)
-- [API Documentation](#api-documentation)
-- [License](#license)
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Docker Setup](#docker-setup)
+* [Running the Application](#running-the-application)
+* [Database Migrations](#database-migrations)
+* [API Documentation](#api-documentation)
+* [License](#license)
 
 ## Installation
 
@@ -17,9 +18,9 @@ This is the backend of the **sidekik** application built with **FastAPI**, **SQL
 
 Ensure you have the following tools installed on your machine:
 
-- **Docker** (for containerization)
-- **Docker Compose** (for orchestrating multi-container applications)
-- **Python 3.11** (if you prefer to run locally without Docker)
+* **Docker** (for containerization)
+* **Docker Compose** (for orchestrating multi-container applications)
+* **Python 3.11** (if you prefer to run locally without Docker)
 
 ### Clone the Repository
 
@@ -28,7 +29,7 @@ To clone the project:
 ```bash
 git clone https://github.com/Sunaina04/Sydkik_backend.git
 cd Sydkik_backend
-````
+```
 
 ### Install Dependencies Locally (Optional)
 
@@ -107,12 +108,12 @@ This project uses **Docker** to containerize the application and its dependencie
 To build and start the application containers (including FastAPI and PostgreSQL), run:
 
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 This command will:
 
-* Build the Docker images defined in the `Dockerfile` and `docker-compose.yml` file
+* Build the Docker images defined in the `Dockerfile` and `docker compose.yml` file
 * Start the `sidekik-db` container (PostgreSQL)
 * Start the `sidekik-api` container (FastAPI)
 
@@ -121,7 +122,7 @@ This command will:
 To stop the running containers and remove them:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### Check Running Containers
@@ -178,7 +179,7 @@ Response:
 You can view logs for all running services using:
 
 ```bash
-docker-compose logs -f
+docker compose logs -f
 ```
 
 This will stream logs from both the FastAPI app (`sidekik-api`) and the PostgreSQL database (`sidekik-db`).
@@ -186,16 +187,42 @@ This will stream logs from both the FastAPI app (`sidekik-api`) and the PostgreS
 To view logs for just the FastAPI service:
 
 ```bash
-docker-compose logs -f sidekik-api
+docker compose logs -f sidekik-api
 ```
 
 Or just the database:
 
 ```bash
-docker-compose logs -f sidekik-db
+docker compose logs -f sidekik-db
 ```
 
 To exit the log stream, press `Ctrl + C`.
+
+---
+
+## Database Migrations
+
+To apply database migrations using Alembic, follow these steps:
+
+### Step 1: Wait for the Database to Start
+
+Before running migrations, ensure that the database is up and running.
+
+### Step 2: Run Migrations
+
+To create the necessary database tables (and any other migrations), run the following command inside the container:
+
+```bash
+docker compose exec web alembic upgrade head
+```
+
+This command will apply the latest migration scripts to the PostgreSQL database.
+
+If you need to generate a new migration script (for example, when you create or modify tables), run the following command:
+
+```bash
+docker compose exec web alembic revision --autogenerate -m "your-migration-message"
+```
 
 ---
 
@@ -216,4 +243,3 @@ These pages provide a live interface to test and understand all available routes
 
 * **Environment Variables**: Secrets like `SECRET_KEY` and OAuth credentials should be stored in the `.env` file and **never** committed to version control. Add `.env` to `.gitignore`.
 
----

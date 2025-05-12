@@ -1,11 +1,11 @@
 #!/bin/bash
 # Wait for the database to be ready before running the migrations and starting the app
-echo "Waiting for the database to be ready..."
-sleep 10  # You can adjust this depending on how long it takes for your database to start
+# echo "Waiting for the database to be ready..."
+# sleep 10  # You can adjust this depending on how long it takes for your database to start
 
-# Run Alembic migrations
-echo "Applying Alembic migrations..."
-alembic upgrade head
+# # Run Alembic migrations
+# echo "Applying Alembic migrations..."
+# alembic upgrade head
 
 # Start the application (Uvicorn for FastAPI)
 echo "Starting the application..."
