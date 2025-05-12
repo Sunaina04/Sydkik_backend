@@ -119,3 +119,10 @@ async def get_me(authorization: str = Header(...), db: AsyncSession = Depends(ge
         return {"user": user}
     except JWTError as e:
         raise HTTPException(status_code=401, detail="Invalid token")
+    
+@router.get("/get-email/{google_id}")
+async def get_email(google_id: str, db: AsyncSession = Depends(get_db)):
+    user = await get_user_by_google_id(db, google_id)
+    if user:
+        return {"email": user.email}
+    raise HTTPException(status_code=404, detail="User not found")

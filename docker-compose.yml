@@ -21,13 +21,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+      - DATABASE_URL=postgresql+asyncpg://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}
     volumes:
       - .:/app
-    command: >
-      bash -c "
-        alembic upgrade head &&  # Run migrations first
-        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"  # Start the FastAPI server
+    command: ["./entrypoint.sh"]
     env_file:
       - .env
 
