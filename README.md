@@ -187,13 +187,13 @@ This will stream logs from both the FastAPI app (`sidekik-api`) and the PostgreS
 To view logs for just the FastAPI service:
 
 ```bash
-docker compose logs -f sidekik-api
+docker compose logs -f web
 ```
 
 Or just the database:
 
 ```bash
-docker compose logs -f sidekik-db
+docker compose logs -f db
 ```
 
 To exit the log stream, press `Ctrl + C`.
