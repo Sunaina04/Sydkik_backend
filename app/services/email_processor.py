@@ -16,6 +16,7 @@ class MeetingDetails(BaseModel):
     subject: Optional[str] = None
     participants: Optional[list] = None
     intent: Optional[str] = None
+    sender: Optional[str] = None 
 
 class EmailProcessor:
     def __init__(self):
@@ -28,7 +29,7 @@ class EmailProcessor:
         wait=wait_exponential(multiplier=1, min=5, max=15),  # Increased wait times
         reraise=True
     )
-    async def process_email(self, email_content: str, subject: str) -> MeetingDetails:
+    async def process_email(self, email_content: str, subject: str,sender: str) -> MeetingDetails:
         prompt = self._create_prompt(email_content, subject)
         try:
             await self._wait_for_rate_limit()
@@ -40,6 +41,7 @@ class EmailProcessor:
                 result["participants"] = []
             elif isinstance(result["participants"], str):
                 result["participants"] = [result["participants"]]
+            result["sender"] = sender
             
             return MeetingDetails(**result)
         except Exception as e:
